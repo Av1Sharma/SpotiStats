@@ -28,3 +28,30 @@ Ensure you have the following Python libraries installed:
 Install them using:
 ```bash
 pip install spotipy pandas matplotlib
+```
+Spotify Developer Credentials
+You will need a Spotify Developer Account and a registered app. Follow these steps to obtain your credentials:
+
+Create a Spotify Developer Account:
+
+Visit the Spotify Developer Dashboard.
+Log in using your Spotify account or create a new one.
+Create an Application:
+
+Once logged in, go to the "Dashboard" and click on the Create an App button.
+Fill out the required details (name, description, etc.) for your app.
+Retrieve Client Credentials:
+
+After creating the app, you’ll be able to view the Client ID and Client Secret.
+Keep these credentials secure as they are required for authentication.
+Set Redirect URI:
+
+In the app settings on the Spotify Developer Dashboard, add a redirect URI: http://localhost:8888/callback.
+This URI will be used during the OAuth authentication process to redirect you back to the application.
+
+Clone or download this repository.
+Open the script and replace the client_id and client_secret in the SpotifyStatsGenerator class with your Spotify app credentials.
+Run the script using:
+```bash
+python app.py
+```
