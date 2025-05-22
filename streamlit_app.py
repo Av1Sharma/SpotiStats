@@ -16,6 +16,8 @@ if 'authenticated' not in st.session_state:
     st.session_state.authenticated = False
 if 'sp' not in st.session_state:
     st.session_state.sp = None
+if 'token_info' not in st.session_state:
+    st.session_state.token_info = None
 
 def authenticate_spotify():
     """Handle Spotify authentication"""
@@ -24,28 +26,42 @@ def authenticate_spotify():
             # Get credentials from Streamlit secrets
             secrets = st.secrets["spotify"]
             
-            # Get the current URL to determine if we're in local or cloud environment
-            current_url = st.experimental_get_query_params().get("_stcore", [None])[0]
-            is_local = current_url is None or "localhost" in current_url
-            
-            # Set redirect URI based on environment
-            redirect_uri = "http://localhost:8501/callback" if is_local else "https://spotistats.streamlit.app/callback"
-            
-            sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
+            # Set up the auth manager without opening a local server
+            auth_manager = SpotifyOAuth(
                 scope="user-top-read user-read-recently-played user-library-read",
-                redirect_uri=redirect_uri,
+                redirect_uri="https://spotistats.streamlit.app/callback",
                 client_id=secrets["client_id"],
                 client_secret=secrets["client_secret"],
                 show_dialog=True,
-                cache_handler=spotipy.cache_handler.CacheFileHandler(cache_path=".spotify_caches")
-            ))
+                open_browser=False  # Don't try to open browser automatically
+            )
             
-            # Test the connection
-            sp.current_user()
+            # Get the authorization URL
+            auth_url = auth_manager.get_authorize_url()
             
-            st.session_state.sp = sp
-            st.session_state.authenticated = True
-            return True
+            # Display the auth URL as a clickable link
+            st.markdown(f'<a href="{auth_url}" target="_self">Click here to authorize with Spotify</a>', unsafe_allow_html=True)
+            
+            # Get the code from URL parameters
+            params = st.experimental_get_query_params()
+            if 'code' in params:
+                code = params['code'][0]
+                # Exchange the code for a token
+                token_info = auth_manager.get_access_token(code)
+                st.session_state.token_info = token_info
+                
+                # Create Spotify client
+                sp = spotipy.Spotify(auth_manager=auth_manager)
+                
+                # Test the connection
+                sp.current_user()
+                
+                st.session_state.sp = sp
+                st.session_state.authenticated = True
+                st.experimental_rerun()
+                return True
+            return False
+            
         except Exception as e:
             st.error(f"Authentication failed: {str(e)}")
             st.error("Please make sure your Spotify API credentials are correct and the redirect URI is properly configured in your Spotify Developer Dashboard.")
