@@ -41,7 +41,7 @@ def main():
             # Force redirect to main page and refresh
             st.markdown("""
             <script>
-                window.location.href = '/';
+                window.location.href = 'https://spotistats.streamlit.app/';
             </script>
             """, unsafe_allow_html=True)
             
@@ -49,7 +49,7 @@ def main():
             st.error("No authorization code received")
             st.markdown("""
             <script>
-                window.location.href = '/';
+                window.location.href = 'https://spotistats.streamlit.app/';
             </script>
             """, unsafe_allow_html=True)
             
@@ -57,7 +57,7 @@ def main():
         st.error(f"Authentication failed: {str(e)}")
         st.markdown("""
         <script>
-            window.location.href = '/';
+            window.location.href = 'https://spotistats.streamlit.app/';
         </script>
         """, unsafe_allow_html=True)
 
