@@ -26,25 +26,36 @@ def authenticate_spotify():
             # Get credentials from Streamlit secrets
             secrets = st.secrets["spotify"]
             
+            # Define the exact redirect URI
+            redirect_uri = "https://spotistats.streamlit.app/callback"
+            
             # Set up the auth manager without opening a local server
             auth_manager = SpotifyOAuth(
                 scope="user-top-read user-read-recently-played user-library-read",
-                redirect_uri="https://spotistats.streamlit.app/callback",
+                redirect_uri=redirect_uri,
                 client_id=secrets["client_id"],
                 client_secret=secrets["client_secret"],
                 show_dialog=True,
-                open_browser=False  # Don't try to open browser automatically
+                open_browser=False,  # Don't try to open browser automatically
+                cache_handler=None  # Disable caching to prevent issues
             )
             
             # Get the authorization URL
             auth_url = auth_manager.get_authorize_url()
             
+            # Display debug information
+            st.write("Debug Information:")
+            st.write(f"Redirect URI: {redirect_uri}")
+            st.write(f"Client ID: {secrets['client_id']}")
+            
             # Display the auth URL as a clickable link
-            st.markdown(f'<a href="{auth_url}" target="_self">Click here to authorize with Spotify</a>', unsafe_allow_html=True)
+            st.markdown("### Step 1: Click the link below to authorize with Spotify")
+            st.markdown(f'<a href="{auth_url}" target="_self">Authorize with Spotify</a>', unsafe_allow_html=True)
             
             # Get the code from URL parameters
             params = st.experimental_get_query_params()
             if 'code' in params:
+                st.write("### Step 2: Authorization code received, exchanging for token...")
                 code = params['code'][0]
                 # Exchange the code for a token
                 token_info = auth_manager.get_access_token(code)
@@ -54,7 +65,8 @@ def authenticate_spotify():
                 sp = spotipy.Spotify(auth_manager=auth_manager)
                 
                 # Test the connection
-                sp.current_user()
+                user = sp.current_user()
+                st.write(f"### Step 3: Successfully authenticated as {user['display_name']}")
                 
                 st.session_state.sp = sp
                 st.session_state.authenticated = True
@@ -64,7 +76,12 @@ def authenticate_spotify():
             
         except Exception as e:
             st.error(f"Authentication failed: {str(e)}")
-            st.error("Please make sure your Spotify API credentials are correct and the redirect URI is properly configured in your Spotify Developer Dashboard.")
+            st.error("""
+            Please check:
+            1. Your Spotify Developer Dashboard settings
+            2. The redirect URI is exactly: https://spotistats.streamlit.app/callback
+            3. Your client ID and client secret are correct
+            """)
             return False
     return True
 
