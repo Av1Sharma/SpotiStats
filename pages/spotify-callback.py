@@ -41,26 +41,16 @@ def main():
             # Show success message
             st.success(f"Successfully authenticated as {user['display_name']}")
             
-            # Add a button to return to main page
-            if st.button("Return to Main Page"):
-                st.switch_page("streamlit_app.py")
-            
-            # Auto-redirect after a short delay
-            st.markdown("""
-            <script>
-                setTimeout(function() {
-                    window.location.href = '/';
-                }, 2000);
-            </script>
-            """, unsafe_allow_html=True)
+            # Force redirect to main page
+            st.switch_page("streamlit_app.py")
             
         else:
             st.error("No authorization code received")
-            st.markdown("[Return to main page](/)")
+            st.switch_page("streamlit_app.py")
             
     except Exception as e:
         st.error(f"Authentication failed: {str(e)}")
-        st.markdown("[Return to main page](/)")
+        st.switch_page("streamlit_app.py")
 
 if __name__ == "__main__":
     main() 
