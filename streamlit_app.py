@@ -28,7 +28,7 @@ def authenticate_spotify():
             secrets = st.secrets["spotify"]
             
             # Define the exact redirect URI
-            redirect_uri = "https://spotistats.streamlit.app/callback"
+            redirect_uri = "http://localhost:8501/spotify-callback"
             
             # Set up the auth manager without opening a local server
             auth_manager = SpotifyOAuth(
@@ -49,37 +49,16 @@ def authenticate_spotify():
             st.write(f"Redirect URI: {redirect_uri}")
             st.write(f"Client ID: {secrets['client_id']}")
             
-            # Create a button that will open the auth URL in a new tab
-            if st.button("Sign in with Spotify", type="primary"):
-                # Use JavaScript to open the URL in a new tab
-                js = f"""
-                <script>
-                    window.open('{auth_url}', '_blank');
-                </script>
-                """
-                st.components.v1.html(js, height=0)
-                st.info("Please complete the authentication in the new tab that opened. After authorizing, return to this tab and refresh the page.")
+            # Display the authorization link
+            st.markdown(f"""
+            ### Step 1: Authorize with Spotify
+            Click the link below to authorize with Spotify:
             
-            # Get the code from URL parameters
-            params = st.experimental_get_query_params()
-            if 'code' in params:
-                st.write("### Step 2: Authorization code received, exchanging for token...")
-                code = params['code'][0]
-                # Exchange the code for a token
-                token_info = auth_manager.get_access_token(code)
-                st.session_state.token_info = token_info
-                
-                # Create Spotify client
-                sp = spotipy.Spotify(auth_manager=auth_manager)
-                
-                # Test the connection
-                user = sp.current_user()
-                st.write(f"### Step 3: Successfully authenticated as {user['display_name']}")
-                
-                st.session_state.sp = sp
-                st.session_state.authenticated = True
-                st.experimental_rerun()
-                return True
+            [Sign in with Spotify]({auth_url})
+            
+            After authorizing, you will be redirected back to this page.
+            """)
+            
             return False
             
         except Exception as e:
@@ -87,7 +66,7 @@ def authenticate_spotify():
             st.error("""
             Please check:
             1. Your Spotify Developer Dashboard settings
-            2. The redirect URI is exactly: https://spotistats.streamlit.app/callback
+            2. The redirect URI is exactly: http://localhost:8501/spotify-callback
             3. Your client ID and client secret are correct
             4. Try disabling any ad blockers or privacy extensions
             """)
@@ -138,72 +117,93 @@ def main():
     
     st.title("🎵 Your Spotify Listening Stats")
     
+    # Initialize session state if not already done
+    if 'authenticated' not in st.session_state:
+        st.session_state.authenticated = False
+    if 'sp' not in st.session_state:
+        st.session_state.sp = None
+    if 'token_info' not in st.session_state:
+        st.session_state.token_info = None
+    
     if not st.session_state.authenticated:
         st.write("Please sign in with your Spotify account to view your listening statistics.")
         if st.button("Sign in with Spotify"):
             if authenticate_spotify():
                 st.experimental_rerun()
     else:
-        timeframes = {
-            "Last 4 Weeks": "short_term",
-            "Last 6 Months": "medium_term",
-            "All Time": "long_term"
-        }
-        
-        selected_timeframe = st.selectbox(
-            "Select Time Period",
-            list(timeframes.keys())
-        )
-        
-        tracks_df, artists_df = get_stats_for_timeframe(timeframes[selected_timeframe])
-        
-        # Display stats in two columns
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.subheader("Top Tracks")
+        try:
+            # Verify the connection is still valid
+            user = st.session_state.sp.current_user()
+            st.write(f"Welcome back, {user['display_name']}!")
+            
+            timeframes = {
+                "Last 4 Weeks": "short_term",
+                "Last 6 Months": "medium_term",
+                "All Time": "long_term"
+            }
+            
+            selected_timeframe = st.selectbox(
+                "Select Time Period",
+                list(timeframes.keys())
+            )
+            
+            tracks_df, artists_df = get_stats_for_timeframe(timeframes[selected_timeframe])
+            
+            # Display stats in two columns
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.subheader("Top Tracks")
+                st.dataframe(
+                    tracks_df[['rank', 'name', 'artist', 'popularity']],
+                    hide_index=True
+                )
+                
+                # Plot track popularity
+                fig, ax = plt.subplots(figsize=(10, 6))
+                tracks_df.plot(kind='bar', x='name', y='popularity', ax=ax)
+                plt.xticks(rotation=45, ha='right')
+                plt.title('Track Popularity')
+                st.pyplot(fig)
+            
+            with col2:
+                st.subheader("Top Artists")
+                st.dataframe(
+                    artists_df[['rank', 'name', 'genres', 'popularity']],
+                    hide_index=True
+                )
+                
+                # Plot artist popularity
+                fig, ax = plt.subplots(figsize=(10, 6))
+                artists_df.plot(kind='bar', x='name', y='popularity', ax=ax)
+                plt.xticks(rotation=45, ha='right')
+                plt.title('Artist Popularity')
+                st.pyplot(fig)
+            
+            st.subheader("Recently Played")
+            recent = st.session_state.sp.current_user_recently_played(limit=50)
+            recent_tracks = pd.DataFrame([{
+                'name': item['track']['name'],
+                'artist': item['track']['artists'][0]['name'],
+                'played_at': datetime.strptime(item['played_at'], '%Y-%m-%dT%H:%M:%S.%fZ')
+            } for item in recent['items']])
+            
             st.dataframe(
-                tracks_df[['rank', 'name', 'artist', 'popularity']],
+                recent_tracks[['name', 'artist', 'played_at']],
                 hide_index=True
             )
             
-            # Plot track popularity
-            fig, ax = plt.subplots(figsize=(10, 6))
-            tracks_df.plot(kind='bar', x='name', y='popularity', ax=ax)
-            plt.xticks(rotation=45, ha='right')
-            plt.title('Track Popularity')
-            st.pyplot(fig)
-        
-        with col2:
-            st.subheader("Top Artists")
-            st.dataframe(
-                artists_df[['rank', 'name', 'genres', 'popularity']],
-                hide_index=True
-            )
-            
-            # Plot artist popularity
-            fig, ax = plt.subplots(figsize=(10, 6))
-            artists_df.plot(kind='bar', x='name', y='popularity', ax=ax)
-            plt.xticks(rotation=45, ha='right')
-            plt.title('Artist Popularity')
-            st.pyplot(fig)
-        
-        st.subheader("Recently Played")
-        recent = st.session_state.sp.current_user_recently_played(limit=50)
-        recent_tracks = pd.DataFrame([{
-            'name': item['track']['name'],
-            'artist': item['track']['artists'][0]['name'],
-            'played_at': datetime.strptime(item['played_at'], '%Y-%m-%dT%H:%M:%S.%fZ')
-        } for item in recent['items']])
-        
-        st.dataframe(
-            recent_tracks[['name', 'artist', 'played_at']],
-            hide_index=True
-        )
-        
-        if st.button("Sign Out"):
+            if st.button("Sign Out"):
+                st.session_state.authenticated = False
+                st.session_state.sp = None
+                st.session_state.token_info = None
+                st.experimental_rerun()
+                
+        except Exception as e:
+            st.error(f"Error loading your stats: {str(e)}")
             st.session_state.authenticated = False
             st.session_state.sp = None
+            st.session_state.token_info = None
             st.experimental_rerun()
 
 if __name__ == "__main__":
