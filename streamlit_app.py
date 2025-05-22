@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 import os
 from dotenv import load_dotenv
+import webbrowser
 
 # Load environment variables for local development
 if os.path.exists('.env'):
@@ -48,9 +49,16 @@ def authenticate_spotify():
             st.write(f"Redirect URI: {redirect_uri}")
             st.write(f"Client ID: {secrets['client_id']}")
             
-            # Display the auth URL as a clickable link
-            st.markdown("### Step 1: Click the link below to authorize with Spotify")
-            st.markdown(f'<a href="{auth_url}" target="_self">Authorize with Spotify</a>', unsafe_allow_html=True)
+            # Create a button that will open the auth URL in a new tab
+            if st.button("Sign in with Spotify", type="primary"):
+                # Use JavaScript to open the URL in a new tab
+                js = f"""
+                <script>
+                    window.open('{auth_url}', '_blank');
+                </script>
+                """
+                st.components.v1.html(js, height=0)
+                st.info("Please complete the authentication in the new tab that opened. After authorizing, return to this tab and refresh the page.")
             
             # Get the code from URL parameters
             params = st.experimental_get_query_params()
@@ -81,6 +89,7 @@ def authenticate_spotify():
             1. Your Spotify Developer Dashboard settings
             2. The redirect URI is exactly: https://spotistats.streamlit.app/callback
             3. Your client ID and client secret are correct
+            4. Try disabling any ad blockers or privacy extensions
             """)
             return False
     return True
