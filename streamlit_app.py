@@ -23,19 +23,32 @@ def authenticate_spotify():
         try:
             # Get credentials from Streamlit secrets
             secrets = st.secrets["spotify"]
+            
+            # Get the current URL to determine if we're in local or cloud environment
+            current_url = st.experimental_get_query_params().get("_stcore", [None])[0]
+            is_local = current_url is None or "localhost" in current_url
+            
+            # Set redirect URI based on environment
+            redirect_uri = "http://localhost:8501/callback" if is_local else "https://spotistats.streamlit.app/callback"
+            
             sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
                 scope="user-top-read user-read-recently-played user-library-read",
-                redirect_uri="https://spotistats.streamlit.app/callback",
+                redirect_uri=redirect_uri,
                 client_id=secrets["client_id"],
                 client_secret=secrets["client_secret"],
                 show_dialog=True,
                 cache_handler=spotipy.cache_handler.CacheFileHandler(cache_path=".spotify_caches")
             ))
+            
+            # Test the connection
+            sp.current_user()
+            
             st.session_state.sp = sp
             st.session_state.authenticated = True
             return True
         except Exception as e:
             st.error(f"Authentication failed: {str(e)}")
+            st.error("Please make sure your Spotify API credentials are correct and the redirect URI is properly configured in your Spotify Developer Dashboard.")
             return False
     return True
 
