@@ -7,7 +7,7 @@ from datetime import datetime
 import os
 from dotenv import load_dotenv
 
-# Load environment variables
+# Load environment variables for local development
 load_dotenv()
 
 # Initialize session state
@@ -20,11 +20,13 @@ def authenticate_spotify():
     """Handle Spotify authentication"""
     if not st.session_state.authenticated:
         try:
+            # Get credentials from Streamlit secrets
+            secrets = st.secrets["spotify"]
             sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
                 scope="user-top-read user-read-recently-played user-library-read",
-                redirect_uri="http://localhost:8888/callback",
-                client_id=os.getenv('SPOTIPY_CLIENT_ID'),
-                client_secret=os.getenv('SPOTIPY_CLIENT_SECRET'),
+                redirect_uri=secrets["redirect_uri"],
+                client_id=secrets["client_id"],
+                client_secret=secrets["client_secret"],
                 show_dialog=True
             ))
             st.session_state.sp = sp
@@ -85,7 +87,6 @@ def main():
             if authenticate_spotify():
                 st.experimental_rerun()
     else:
-        # Timeframe selection
         timeframes = {
             "Last 4 Weeks": "short_term",
             "Last 6 Months": "medium_term",
@@ -97,7 +98,6 @@ def main():
             list(timeframes.keys())
         )
         
-        # Get stats for selected timeframe
         tracks_df, artists_df = get_stats_for_timeframe(timeframes[selected_timeframe])
         
         # Display stats in two columns
@@ -131,7 +131,6 @@ def main():
             plt.title('Artist Popularity')
             st.pyplot(fig)
         
-        # Recently played tracks
         st.subheader("Recently Played")
         recent = st.session_state.sp.current_user_recently_played(limit=50)
         recent_tracks = pd.DataFrame([{
@@ -145,7 +144,6 @@ def main():
             hide_index=True
         )
         
-        # Sign out button
         if st.button("Sign Out"):
             st.session_state.authenticated = False
             st.session_state.sp = None
