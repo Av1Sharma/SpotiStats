@@ -8,7 +8,8 @@ import os
 from dotenv import load_dotenv
 
 # Load environment variables for local development
-load_dotenv()
+if os.path.exists('.env'):
+    load_dotenv()
 
 # Initialize session state
 if 'authenticated' not in st.session_state:
@@ -24,10 +25,11 @@ def authenticate_spotify():
             secrets = st.secrets["spotify"]
             sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
                 scope="user-top-read user-read-recently-played user-library-read",
-                redirect_uri="https://spotistats.streamlit.app/",
+                redirect_uri="https://spotistats.streamlit.app/callback",
                 client_id=secrets["client_id"],
                 client_secret=secrets["client_secret"],
-                show_dialog=True
+                show_dialog=True,
+                cache_handler=spotipy.cache_handler.CacheFileHandler(cache_path=".spotify_caches")
             ))
             st.session_state.sp = sp
             st.session_state.authenticated = True
