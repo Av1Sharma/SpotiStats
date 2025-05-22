@@ -64,13 +64,11 @@ class SpotifyStatsGenerator:
         print("\nTop Artists:")
         print(artists_df[['rank', 'name', 'genres']].to_string(index=False))
         
-        # Add some interesting stats
         print(f"\nStats for {title}:")
         print(f"Most Popular Track: {tracks_df.loc[tracks_df['popularity'].idxmax(), 'name']} "
               f"by {tracks_df.loc[tracks_df['popularity'].idxmax(), 'artist']}")
         print(f"Most Popular Artist: {artists_df.loc[artists_df['popularity'].idxmax(), 'name']}")
         
-        # Get unique genres and sort by frequency
         genres = [g.strip() for genres in artists_df['genres'].str.split(',') for g in genres if g.strip()]
         top_genres = pd.Series(genres).value_counts().head(3)
         print("\nTop Genres:")
@@ -83,14 +81,12 @@ class SpotifyStatsGenerator:
         print("\n🎵 SPOTIFY LISTENING REPORT 🎵")
         print("Generating comprehensive statistics across different time periods...")
         
-        # Get stats for each timeframe
         timeframes = {
             "Last 4 Weeks": "short_term",
             "Last 6 Months": "medium_term",
             "All Time": "long_term"
         }
         
-        # Store DataFrames for later comparison
         all_tracks = {}
         all_artists = {}
         
@@ -100,10 +96,8 @@ class SpotifyStatsGenerator:
             all_artists[title] = artists_df
             self.print_timeframe_stats(title, tracks_df, artists_df)
         
-        # Generate interesting comparisons
         print("\n🔍 INTERESTING INSIGHTS 🔍")
         
-        # Artists appearing in all timeframes
         consistent_artists = set(all_artists["Last 4 Weeks"]['name']) & \
                            set(all_artists["Last 6 Months"]['name']) & \
                            set(all_artists["All Time"]['name'])
@@ -113,7 +107,6 @@ class SpotifyStatsGenerator:
             for artist in consistent_artists:
                 print(f"- {artist}")
         
-        # Tracks appearing in multiple timeframes
         consistent_tracks = set(all_tracks["Last 4 Weeks"]['name']) & \
                           set(all_tracks["Last 6 Months"]['name'])
         
@@ -122,7 +115,6 @@ class SpotifyStatsGenerator:
             for track in consistent_tracks:
                 print(f"- {track}")
         
-        # Get recently played tracks for additional context
         recent = self.sp.current_user_recently_played(limit=50)
         recent_tracks = pd.DataFrame([{
             'name': item['track']['name'],

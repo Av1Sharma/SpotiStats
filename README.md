@@ -1,57 +1,63 @@
-# Spotify Stats Generator README
+# SpotiStats
 
-## Overview
-**Spotify Stats Generator** is a Python script that provides detailed insights into your Spotify listening habits, including your top tracks, artists, genres, and recent listening patterns. It uses the Spotify Web API via the `spotipy` library to gather data and generates comprehensive statistics and visualizations.
-
----
+A Streamlit web application that provides detailed insights into your Spotify listening habits, including top tracks, artists, genres, and recent listening patterns.
 
 ## Features
-- **Top Tracks & Artists**:
-  - Displays your most played tracks and artists for different time ranges: the last 4 weeks, the last 6 months, and all time.
-- **Genre Analysis**:
-  - Identifies the most common genres in your top artists' profiles.
-- **Listening Patterns**:
-  - Analyzes your recent listening habits and visualizes them as a bar chart of hourly activity.
-- **Consistent Favorites**:
-  - Highlights tracks and artists that appear consistently across multiple timeframes.
 
----
+- View your top tracks and artists for different time periods
+- See your recently played tracks
+- Visualize your listening patterns
+- Beautiful and interactive interface
 
-## Prerequisites
+## Local Development
 
-### Required Libraries
-Ensure you have the following Python libraries installed:
-- `spotipy`
-- `pandas`
-- `matplotlib`
-
-Install them using:
+1. Clone the repository:
 ```bash
-pip install spotipy pandas matplotlib
+git clone https://github.com/Av1Sharma/SpotiStats.git
+cd SpotiStats
 ```
-Spotify Developer Credentials
-You will need a Spotify Developer Account and a registered app. Follow these steps to obtain your credentials:
 
-Create a Spotify Developer Account:
-
-Visit the Spotify Developer Dashboard.
-Log in using your Spotify account or create a new one.
-Create an Application:
-
-Once logged in, go to the "Dashboard" and click on the Create an App button.
-Fill out the required details (name, description, etc.) for your app.
-Retrieve Client Credentials:
-
-After creating the app, you’ll be able to view the Client ID and Client Secret.
-Keep these credentials secure as they are required for authentication.
-Set Redirect URI:
-
-In the app settings on the Spotify Developer Dashboard, add a redirect URI: http://localhost:8888/callback.
-This URI will be used during the OAuth authentication process to redirect you back to the application.
-
-Clone or download this repository.
-Open the script and replace the client_id and client_secret in the SpotifyStatsGenerator class with your Spotify app credentials.
-Run the script using:
+2. Install dependencies:
 ```bash
-python app.py
+pip3 install -r requirements.txt
 ```
+
+3. Create a `.env` file with your Spotify credentials:
+```
+SPOTIPY_CLIENT_ID=your_client_id_here
+SPOTIPY_CLIENT_SECRET=your_client_secret_here
+SPOTIPY_REDIRECT_URI=http://localhost:8888/callback
+```
+
+4. Run the app:
+```bash
+streamlit run streamlit_app.py
+```
+
+## Deployment on Streamlit Cloud
+
+1. Fork this repository
+2. Go to [Streamlit Community Cloud](https://share.streamlit.io/)
+3. Sign in with your GitHub account
+4. Click "New app"
+5. Select your forked repository
+6. Set the main file path to `streamlit_app.py`
+7. Add your Spotify credentials in the Streamlit secrets management:
+```toml
+[spotify]
+client_id = "your_client_id_here"
+client_secret = "your_client_secret_here"
+redirect_uri = "https://share.streamlit.io/your-username/your-app-name/callback"
+```
+
+## Spotify Developer Setup
+
+1. Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
+2. Create a new application
+3. Add these Redirect URIs:
+   - `http://localhost:8888/callback` (for local development)
+   - `https://share.streamlit.io/your-username/your-app-name/callback` (for deployed app)
+
+## License
+
+MIT License
