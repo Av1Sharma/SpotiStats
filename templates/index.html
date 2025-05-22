@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotify Stats Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .timeframe-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .track-card, .artist-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            transition: transform 0.2s;
+        }
+        .track-card:hover, .artist-card:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen p-8">
+    <div class="max-w-7xl mx-auto">
+        <h1 class="text-4xl font-bold mb-8 text-center text-green-400">🎵 Your Spotify Stats</h1>
+        
+        {% for timeframe, data in all_data.items() %}
+        <div class="timeframe-section">
+            <h2 class="text-2xl font-semibold mb-4 text-green-400">{{ timeframe }}</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Top Tracks -->
+                <div>
+                    <h3 class="text-xl font-semibold mb-3">Top Tracks</h3>
+                    {% for track in data.tracks %}
+                    <div class="track-card">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="font-medium">{{ track.name }}</p>
+                                <p class="text-gray-400 text-sm">{{ track.artist }}</p>
+                            </div>
+                            <span class="text-green-400">#{{ track.rank }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Top Artists -->
+                <div>
+                    <h3 class="text-xl font-semibold mb-3">Top Artists</h3>
+                    {% for artist in data.artists %}
+                    <div class="artist-card">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="font-medium">{{ artist.name }}</p>
+                                <p class="text-gray-400 text-sm">{{ artist.genres }}</p>
+                            </div>
+                            <span class="text-green-400">#{{ artist.rank }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        
+        <!-- Recently Played -->
+        <div class="timeframe-section">
+            <h2 class="text-2xl font-semibold mb-4 text-green-400">Recently Played</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for track in recent_tracks %}
+                <div class="track-card">
+                    <p class="font-medium">{{ track.name }}</p>
+                    <p class="text-gray-400 text-sm">{{ track.artist }}</p>
+                    <p class="text-gray-500 text-xs mt-1">{{ track.played_at }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</body>
+</html> 
