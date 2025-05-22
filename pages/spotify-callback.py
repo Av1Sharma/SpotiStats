@@ -38,19 +38,28 @@ def main():
             st.session_state.sp = sp
             st.session_state.token_info = token_info
             
-            # Show success message
-            st.success(f"Successfully authenticated as {user['display_name']}")
-            
-            # Force redirect to main page
-            st.switch_page("streamlit_app.py")
+            # Force redirect to main page and refresh
+            st.markdown("""
+            <script>
+                window.location.href = '/';
+            </script>
+            """, unsafe_allow_html=True)
             
         else:
             st.error("No authorization code received")
-            st.switch_page("streamlit_app.py")
+            st.markdown("""
+            <script>
+                window.location.href = '/';
+            </script>
+            """, unsafe_allow_html=True)
             
     except Exception as e:
         st.error(f"Authentication failed: {str(e)}")
-        st.switch_page("streamlit_app.py")
+        st.markdown("""
+        <script>
+            window.location.href = '/';
+        </script>
+        """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main() 

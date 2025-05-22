@@ -127,13 +127,13 @@ def main():
     
     # Check if we're returning from authentication
     if 'code' in st.query_params:
-        st.experimental_rerun()
+        st.rerun()
     
     if not st.session_state.authenticated:
         st.write("Please sign in with your Spotify account to view your listening statistics.")
         if st.button("Sign in with Spotify"):
             if authenticate_spotify():
-                st.experimental_rerun()
+                st.rerun()
     else:
         try:
             # Verify the connection is still valid
@@ -145,7 +145,7 @@ def main():
                 st.session_state.authenticated = False
                 st.session_state.sp = None
                 st.session_state.token_info = None
-                st.experimental_rerun()
+                st.rerun()
             
             timeframes = {
                 "Last 4 Weeks": "short_term",
@@ -209,7 +209,7 @@ def main():
             st.session_state.authenticated = False
             st.session_state.sp = None
             st.session_state.token_info = None
-            st.experimental_rerun()
+            st.rerun()
 
 if __name__ == "__main__":
     main() 
