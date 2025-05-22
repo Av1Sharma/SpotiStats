@@ -24,7 +24,7 @@ def authenticate_spotify():
             secrets = st.secrets["spotify"]
             sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
                 scope="user-top-read user-read-recently-played user-library-read",
-                redirect_uri=secrets["redirect_uri"],
+                redirect_uri="https://spotistats.streamlit.app/",
                 client_id=secrets["client_id"],
                 client_secret=secrets["client_secret"],
                 show_dialog=True
