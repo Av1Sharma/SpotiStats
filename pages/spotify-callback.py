@@ -12,7 +12,7 @@ def main():
         # Set up the auth manager
         auth_manager = SpotifyOAuth(
             scope="user-top-read user-read-recently-played user-library-read",
-            redirect_uri="http://localhost:8501/spotify-callback",
+            redirect_uri="https://spotistats.streamlit.app/spotify-callback",
             client_id=secrets["client_id"],
             client_secret=secrets["client_secret"],
             show_dialog=True,
@@ -23,6 +23,7 @@ def main():
         # Get the code from URL parameters
         if 'code' in st.query_params:
             code = st.query_params['code']
+            
             # Exchange the code for a token
             token_info = auth_manager.get_access_token(code)
             
@@ -37,8 +38,22 @@ def main():
             st.session_state.sp = sp
             st.session_state.token_info = token_info
             
-            # Force redirect to main page
-            st.switch_page("streamlit_app.py")
+            # Show success message
+            st.success(f"Successfully authenticated as {user['display_name']}")
+            
+            # Add a button to return to main page
+            if st.button("Return to Main Page"):
+                st.switch_page("streamlit_app.py")
+            
+            # Auto-redirect after a short delay
+            st.markdown("""
+            <script>
+                setTimeout(function() {
+                    window.location.href = '/';
+                }, 2000);
+            </script>
+            """, unsafe_allow_html=True)
+            
         else:
             st.error("No authorization code received")
             st.markdown("[Return to main page](/)")

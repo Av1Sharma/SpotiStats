@@ -28,7 +28,7 @@ def authenticate_spotify():
             secrets = st.secrets["spotify"]
             
             # Define the exact redirect URI
-            redirect_uri = "http://localhost:8501/spotify-callback"
+            redirect_uri = "https://spotistats.streamlit.app/spotify-callback"
             
             # Set up the auth manager without opening a local server
             auth_manager = SpotifyOAuth(
@@ -66,7 +66,7 @@ def authenticate_spotify():
             st.error("""
             Please check:
             1. Your Spotify Developer Dashboard settings
-            2. The redirect URI is exactly: http://localhost:8501/spotify-callback
+            2. The redirect URI is exactly: https://spotistats.streamlit.app/spotify-callback
             3. Your client ID and client secret are correct
             4. Try disabling any ad blockers or privacy extensions
             """)
@@ -125,6 +125,10 @@ def main():
     if 'token_info' not in st.session_state:
         st.session_state.token_info = None
     
+    # Check if we're returning from authentication
+    if 'code' in st.query_params:
+        st.experimental_rerun()
+    
     if not st.session_state.authenticated:
         st.write("Please sign in with your Spotify account to view your listening statistics.")
         if st.button("Sign in with Spotify"):
@@ -135,6 +139,13 @@ def main():
             # Verify the connection is still valid
             user = st.session_state.sp.current_user()
             st.write(f"Welcome back, {user['display_name']}!")
+            
+            # Add a sign out button at the top
+            if st.button("Sign Out"):
+                st.session_state.authenticated = False
+                st.session_state.sp = None
+                st.session_state.token_info = None
+                st.experimental_rerun()
             
             timeframes = {
                 "Last 4 Weeks": "short_term",
@@ -193,12 +204,6 @@ def main():
                 hide_index=True
             )
             
-            if st.button("Sign Out"):
-                st.session_state.authenticated = False
-                st.session_state.sp = None
-                st.session_state.token_info = None
-                st.experimental_rerun()
-                
         except Exception as e:
             st.error(f"Error loading your stats: {str(e)}")
             st.session_state.authenticated = False
